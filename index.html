@@ -3,143 +3,56 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Feedback Privado - Portal do Formando</title>
+<title>Feedback Privado - Gestão e Consulta</title>
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
 <style>
   :root { --ink: #1a1a2e; --gold: #2563eb; --border: #e2e8f0; --muted: #6b6b7b; --bg: #f8fafc; }
   * { box-sizing: border-box; margin: 0; padding: 0; }
-  body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--ink); display: flex; justify-content: center; align-items: center; min-height: 100vh; padding: 20px; }
-  .card { background: white; padding: 2.5rem; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.08); width: 100%; max-width: 600px; border: 1px solid var(--border); }
-  h1 { font-family: 'Playfair Display', serif; margin-bottom: 1.5rem; text-align: center; color: var(--gold); font-size: 2rem; }
-  .form-group { margin-bottom: 1.2rem; }
-  label { display: block; margin-bottom: 0.5rem; font-size: 0.85rem; font-weight: 600; text-transform: uppercase; color: var(--muted); }
-  input { width: 100%; padding: 0.8rem; border: 1.5px solid var(--border); border-radius: 10px; font-size: 1rem; transition: border-color 0.2s; }
-  input:focus { border-color: var(--gold); outline: none; }
-  .btn { width: 100%; padding: 1rem; background: var(--gold); color: white; border: none; border-radius: 10px; font-weight: 600; cursor: pointer; margin-top: 1rem; font-size: 1rem; transition: opacity 0.2s; }
-  .btn:hover { opacity: 0.9; }
-  .feedback-box { display: none; margin-top: 1rem; animation: fadeIn 0.5s; }
-  .feedback-content { background: #f0f4ff; padding: 1.5rem; border-radius: 12px; border-left: 5px solid var(--gold); line-height: 1.7; margin: 1.5rem 0; overflow-wrap: break-word; }
-  .error { color: #dc2626; font-size: 0.85rem; margin-top: 1rem; text-align: center; display: none; font-weight: 500; }
-  @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+  body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--ink); min-height: 100vh; padding: 20px; }
+  .container { max-width: 800px; margin: 0 auto; width: 100%; }
+  .card { background: white; padding: 2rem; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.08); border: 1px solid var(--border); }
+  h1 { font-family: 'Playfair Display', serif; text-align: center; color: var(--gold); margin-bottom: 1.5rem; }
+  
+  /* Form */
+  .form-group { margin-bottom: 1rem; }
+  label { display: block; margin-bottom: 0.5rem; font-weight: 600; font-size: 0.9rem; }
+  input, textarea { width: 100%; padding: 0.75rem; border: 1px solid var(--border); border-radius: 10px; font-family: inherit; }
+  
+  .btn { width: 100%; padding: 0.8rem; background: var(--gold); color: white; border: none; border-radius: 10px; font-weight: 600; cursor: pointer; margin-top: 10px; }
+  .btn-admin { background: #64748b; margin-top: 40px; font-size: 0.7rem; opacity: 0.5; }
+  
+  .hidden { display: none; }
+  .feedback-display { background: #f0f4ff; padding: 1.5rem; border-radius: 12px; border-left: 5px solid var(--gold); margin-top: 20px; white-space: pre-wrap; }
 </style>
 </head>
 <body>
 
-<div class="card">
-  <h1>Portal de Feedback</h1>
+<div class="container">
   
-  <div id="login-section">
-    <p style="text-align: center; color: var(--muted); margin-bottom: 2rem;">Insira os seus dados para consultar a sua avaliação individual.</p>
+  <div id="view-student" class="card">
+    <h1>Portal do Formando</h1>
     <div class="form-group">
-      <label>Nome Completo</label>
-      <input type="text" id="studentName" placeholder="Ex: Sílvia Carlos">
+      <label>Introduza a sua Password</label>
+      <input type="password" id="passInput" placeholder="Sua senha..." style="text-align:center">
     </div>
-    <div class="form-group">
-      <label>Palavra-passe</label>
-      <input type="password" id="studentPass" placeholder="Senha fornecida pela formadora">
-    </div>
-    <button class="btn" onclick="checkAccess()">Entrar e Consultar</button>
-    <p id="error-msg" class="error">Acesso negado. Verifique o nome e a password.</p>
-  </div>
-
-  <div id="feedback-section" class="feedback-box">
-    <div style="display: flex; justify-content: space-between; align-items: baseline; border-bottom: 2px solid var(--bg); padding-bottom: 1rem;">
-      <h2 id="display-name" style="font-family: 'Playfair Display'; font-size: 1.5rem;"></h2>
-      <div id="display-nota" style="background: var(--ink); color: white; padding: 5px 15px; border-radius: 20px; font-weight: bold;"></div>
+    <button class="btn" onclick="checkStudent()">Ver Minha Avaliação</button>
+    <p id="error-login" style="color:red; text-align:center; display:none; margin-top:10px;">Senha não encontrada.</p>
+    
+    <div id="result-area" class="hidden">
+        <h2 id="res-name" style="margin-top:20px; font-family: 'Playfair Display';"></h2>
+        <div id="res-nota" style="font-weight:bold; color:var(--gold); margin: 10px 0;"></div>
+        <div id="res-feedback" class="feedback-display"></div>
+        <button class="btn" style="background:#ccc" onclick="location.reload()">Sair</button>
     </div>
     
-    <div class="feedback-content" id="display-text"></div>
-    
-    <p style="font-size: 0.8rem; color: var(--muted); margin-bottom: 1.5rem;">Formadora: Carla Oliveira</p>
-    <button class="btn" style="background: #64748b;" onclick="window.location.reload()">Sair do Sistema</button>
+    <button class="btn btn-admin" onclick="showAdmin()">Aceder ao Painel de Formadora (Admin)</button>
   </div>
-</div>
 
-<script>
-// ══════════════════════════════════════════════════════════════════
-//  BASE DE DADOS DOS 9 FORMANDOS
-// ══════════════════════════════════════════════════════════════════
-const listaFormandos = [
-  {
-    name: "Helena Salomé",
-    password: "Solar34",
-    nota: "10.00",
-    feedback: "O cenário apresentado é claro, coerente e cumpre a estrutura solicitada. Pontos Fortes: Enquadramento Claro, Escolha de Metodologia e Interatividade. Recomendação: Foco no Prompt Engineering e Verificação de Factos."
-  },
-  {
-    name: "Hélia Gamito",
-    password: "Azul85",
-    nota: "10.00",
-    feedback: "Cenário extremamente sensível com excelente adaptação inclusiva. Pontos Fortes: Pertinência do Tema e Mediação Pedagógica. Recomendação: Explore o uso de IA para gerar imagens personalizadas (ex: Adobe Firefly)."
-  },
-  {
-    name: "José Delgado",
-    password: "Rio51",
-    nota: "10.00",
-    feedback: "Cenário 'Visual Poetry' com excelente articulação curricular e literacia digital. Proposta inovadora de transformar palavras em imagens com IA."
-  },
-  {
-    name: "Maria Antónia",
-    password: "Verde22",
-    nota: "10.00",
-    feedback: "Excelente proposta focada na exploração de prompts e análise crítica de resultados gerados por IA."
-  },
-  {
-    name: "Paula Cristina",
-    password: "Mar99",
-    nota: "10.00",
-    feedback: "Trabalho muito bem estruturado, com foco na diferenciação pedagógica e no uso ético da inteligência artificial."
-  },
-  {
-    name: "Ricardo Jorge",
-    password: "Terra10",
-    nota: "10.00",
-    feedback: "Ótima integração de ferramentas de IA para apoio ao estudo e criação de materiais didáticos dinâmicos."
-  },
-  {
-    name: "Carla Oliveira",
-    password: "co",
-    nota: "10.00",
-    feedback: "Excelente trabalho! Continuação de bons projetos."
-  },
-  {
-    name: "Sílvia Carlos",
-    password: "Azul60",
-    nota: "9.17",
-    feedback: "Bom desempenho global. Parabéns pelo empenho e pela evolução demonstrada!"
-  },
-  {
-    name: "Helena Serrão",
-    password: "Solar41",
-    nota: "8.32",
-    feedback: "Trabalho consistente e boa participação nas aulas. Continue a explorar novas ferramentas."
-  }
-];
-
-// ══════════════════════════════════════════════════════════════════
-//  LÓGICA DE LOGIN
-// ══════════════════════════════════════════════════════════════════
-function checkAccess() {
-  const nameInput = document.getElementById('studentName').value.trim();
-  const passInput = document.getElementById('studentPass').value.trim();
-  const errorMsg = document.getElementById('error-msg');
-
-  const aluno = listaFormandos.find(s => 
-    s.name.toLowerCase() === nameInput.toLowerCase() && s.password === passInput
-  );
-
-  if (aluno) {
-    document.getElementById('login-section').style.display = 'none';
-    document.getElementById('feedback-section').style.display = 'block';
-    document.getElementById('display-name').innerText = aluno.name;
-    document.getElementById('display-nota').innerText = aluno.nota;
-    document.getElementById('display-text').innerText = aluno.feedback;
-    errorMsg.style.display = 'none';
-  } else {
-    errorMsg.style.display = 'block';
-  }
-}
-</script>
-
-</body>
-</html>
+  <div id="view-admin" class="card hidden">
+    <h1>Painel da Formadora</h1>
+    <p style="font-size: 0.8rem; margin-bottom: 20px; color: var(--muted);">Nota: Alunos inseridos aqui ficam guardados apenas no seu browser atual.</p>
+    
+    <div class="form-group">
+      <label>Nome do Formando</label>
+      <input type="text" id="adm-name">
+    </div>
