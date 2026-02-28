@@ -56,3 +56,95 @@
       <label>Nome do Formando</label>
       <input type="text" id="adm-name">
     </div>
+    <div class="form-group">
+      <label>Password</label>
+      <input type="text" id="adm-pass">
+    </div>
+    <div class="form-group">
+      <label>Nota Final</label>
+      <input type="text" id="adm-nota">
+    </div>
+    <div class="form-group">
+      <label>Feedback</label>
+      <textarea id="adm-feedback" rows="5"></textarea>
+    </div>
+    <button class="btn" onclick="addStudent()">Guardar Novo Formando</button>
+    <button class="btn" style="background:#64748b" onclick="location.reload()">Voltar à Consulta</button>
+    
+    <hr style="margin: 20px 0;">
+    <h3>Lista Local (Neste PC):</h3>
+    <div id="local-list" style="font-size: 0.8rem; margin-top:10px;"></div>
+  </div>
+
+</div>
+
+<script>
+// 1. DADOS FIXOS (OS 9 QUE JÁ ME DESTE - FUNCIONAM EM TODO O LADO)
+const studentsFixed = [
+  { name: "Helena Salomé", password: "Solar34", nota: "10.00", feedback: "Cenário claro e coerente..." },
+  { name: "Hélia Gamito", password: "Azul85", nota: "10.00", feedback: "Excelente adaptação inclusiva..." },
+  { name: "José Delgado", password: "Rio51", nota: "10.00", feedback: "Cenário 'Visual Poetry' inovador..." },
+  { name: "Maria Antónia", password: "Verde22", nota: "10.00", feedback: "Exploração de prompts excelente." },
+  { name: "Paula Cristina", password: "Mar99", nota: "10.00", feedback: "Foco na diferenciação pedagógica." },
+  { name: "Ricardo Jorge", password: "Terra10", nota: "10.00", feedback: "Ferramentas de IA dinâmicas." },
+  { name: "Carla Oliveira", password: "co", nota: "10.00", feedback: "Excelente trabalho!" },
+  { name: "Sílvia Carlos", password: "Azul60", nota: "9.17", feedback: "Bom desempenho global." },
+  { name: "Helena Serrão", password: "Solar41", nota: "8.32", feedback: "Trabalho consistente." }
+];
+
+// 2. FUNÇÃO DE LOGIN (ALUNO)
+function checkStudent() {
+    const pass = document.getElementById('passInput').value.trim();
+    // Procura nos fixos + nos que gravares localmente
+    const local = JSON.parse(localStorage.getItem('my_students') || "[]");
+    const all = [...studentsFixed, ...local];
+    
+    const found = all.find(s => s.password === pass);
+    
+    if(found) {
+        document.getElementById('passInput').parentElement.classList.add('hidden');
+        document.querySelector('#view-student h1').classList.add('hidden');
+        document.querySelector('.btn-admin').classList.add('hidden');
+        document.getElementById('error-login').style.display = 'none';
+        document.getElementById('result-area').classList.remove('hidden');
+        
+        document.getElementById('res-name').innerText = "Olá, " + found.name;
+        document.getElementById('res-nota').innerText = "Média Final: " + found.nota;
+        document.getElementById('res-feedback').innerText = found.feedback;
+    } else {
+        document.getElementById('error-login').style.display = 'block';
+    }
+}
+
+// 3. FUNÇÕES DE ADMINISTRAÇÃO
+function showAdmin() {
+    document.getElementById('view-student').classList.add('hidden');
+    document.getElementById('view-admin').classList.remove('hidden');
+    updateLocalList();
+}
+
+function addStudent() {
+    const newS = {
+        name: document.getElementById('adm-name').value,
+        password: document.getElementById('adm-pass').value,
+        nota: document.getElementById('adm-nota').value,
+        feedback: document.getElementById('adm-feedback').value
+    };
+    
+    if(!newS.password) return alert("Password obrigatória");
+    
+    let local = JSON.parse(localStorage.getItem('my_students') || "[]");
+    local.push(newS);
+    localStorage.setItem('my_students', JSON.stringify(local));
+    
+    alert("Guardado com sucesso no seu computador!");
+    updateLocalList();
+}
+
+function updateLocalList() {
+    const local = JSON.parse(localStorage.getItem('my_students') || "[]");
+    document.getElementById('local-list').innerHTML = local.map(s => `<div>• ${s.name} (${s.password})</div>`).join('');
+}
+</script>
+</body>
+</html>
