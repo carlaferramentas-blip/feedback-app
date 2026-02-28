@@ -1,185 +1,114 @@
+
 <!DOCTYPE html>
-<html lang="pt">
+<html>
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>FeedbackPrivado - Gestão de Formandos</title>
-<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<title>FeedbackPrivado - Firestore</title>
+
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
+
 <style>
-  :root {
-    --ink: #1a1a2e; --cream: #f0f4ff; --gold: #2563eb; --border: #e2e8f0;
-    --muted: #6b6b7b; --card: #ffffff; --green: #2d6a4f; --green-light: #d8f3dc;
-  }
-  * { box-sizing: border-box; margin: 0; padding: 0; }
-  body { font-family: 'DM Sans', sans-serif; background: #fff; color: var(--ink); min-height: 100vh; }
-  h1, h2, h3 { font-family: 'Playfair Display', serif; }
-  .screen { display: none; min-height: 100vh; }
-  .screen.active { display: flex; flex-direction: column; }
-  nav { display: flex; justify-content: space-between; align-items: center; padding: 1.5rem 2rem; border-bottom: 1px solid var(--border); background: #fff; position: sticky; top: 0; z-index: 100; }
-  .nav-brand { font-size: 1.5rem; font-weight: 700; color: var(--gold); text-decoration: none; }
-  .btn { padding: 0.6rem 1.2rem; border-radius: 6px; font-weight: 500; cursor: pointer; border: none; transition: 0.2s; }
-  .btn-primary { background: var(--gold); color: #fff; }
-  .btn-outline { background: transparent; border: 1px solid var(--border); color: var(--ink); }
-  .container { max-width: 1000px; margin: 0 auto; padding: 2rem; width: 100%; }
-  .student-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 1.5rem; }
-  .student-card { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 1.5rem; position: relative; }
-  .student-card:hover { transform: translateY(-4px); box-shadow: 0 12px 24px rgba(0,0,0,0.05); }
-  .score-badge { padding: 0.4rem 0.8rem; border-radius: 20px; font-weight: 600; font-size: 0.85rem; background: var(--green-light); color: var(--green); }
-  .form-card { background: #fff; border: 1px solid var(--border); border-radius: 16px; padding: 2.5rem; max-width: 750px; margin: 0 auto; }
-  .form-group { margin-bottom: 1.5rem; }
-  label { display: block; margin-bottom: 0.5rem; font-weight: 500; }
-  input, textarea { width: 100%; padding: 0.75rem; border: 1px solid var(--border); border-radius: 8px; font-family: inherit; font-size: 1rem; }
-  .modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.7); display: none; justify-content: center; align-items: center; z-index: 1000; }
-  .modal-content { background: #fff; padding: 2.5rem; border-radius: 20px; max-width: 850px; width: 95%; max-height: 90vh; overflow-y: auto; }
-  .feedback-box { line-height: 1.6; color: #333; padding: 1.5rem; border: 1px solid var(--border); border-radius: 12px; background: #fafafa; }
+body { font-family: Arial; margin:0; display:flex; height:100vh; }
+.sidebar { width:300px; border-right:1px solid #ddd; padding:20px; box-sizing:border-box; }
+.main { flex:1; padding:40px; }
+button { padding:8px 12px; margin-top:10px; }
+.student { cursor:pointer; padding:6px; border-bottom:1px solid #eee; }
+.student:hover { background:#f5f5f5; }
+textarea { width:100%; height:300px; }
 </style>
 </head>
+
 <body>
 
-  <nav>
-    <a href="#" class="nav-brand" onclick="showScreen('home')">FeedbackPrivado</a>
-    <button class="btn btn-primary" onclick="openNewForm()">+ Novo Formando</button>
-  </nav>
+<div class="sidebar">
+<h3>Formandos</h3>
+<div id="studentList"></div>
 
-  <main id="screen-home" class="screen active">
-    <div class="container">
-      <h1 style="text-align:center; margin-bottom: 2rem;">Painel de Gestão</h1>
-      <div id="student-grid" class="student-grid"></div>
-    </div>
-  </main>
+<h4>Adicionar Formando</h4>
+<input type="text" id="newName" placeholder="Nome"><br>
+<input type="text" id="newPass" placeholder="Password"><br>
+<button onclick="addStudent()">Adicionar</button>
+</div>
 
-  <main id="screen-form" class="screen">
-    <div class="container">
-      <div class="form-card">
-        <h2 id="form-title" style="margin-bottom: 2rem;">Editar Formando</h2>
-        <form id="student-form">
-          <input type="hidden" id="student-id">
-          <div class="form-group"><label>Nome</label><input type="text" id="student-name" required></div>
-          <div class="form-group"><label>Password</label><input type="text" id="student-pass" required></div>
-          <div class="form-group"><label>Feedback (HTML)</label><textarea id="student-feedback" rows="15"></textarea></div>
-          <div style="display: flex; gap: 1rem;">
-            <button type="submit" class="btn btn-primary" style="flex: 2;">Guardar</button>
-            <button type="button" class="btn btn-outline" style="flex: 1;" onclick="showScreen('home')">Cancelar</button>
-          </div>
-        </form>
-      </div>
-    </div>
-  </main>
-
-  <div id="feedback-modal" class="modal-overlay" onclick="this.style.display='none'">
-    <div class="modal-content" onclick="event.stopPropagation()">
-      <h2 id="modal-name" style="margin-bottom: 1.5rem; color: var(--gold);"></h2>
-      <div id="modal-body" class="feedback-box"></div>
-      <button class="btn btn-primary" style="margin-top: 1.5rem;" onclick="document.getElementById('feedback-modal').style.display='none'">Fechar</button>
-    </div>
-  </div>
+<div class="main">
+<h2 id="selectedName">Seleciona um formando</h2>
+<textarea id="feedbackBox" placeholder="Escreve feedback aqui..."></textarea><br>
+<button onclick="saveFeedback()">Guardar Feedback</button>
+</div>
 
 <script>
-// DADOS REAIS EXTRAÍDOS DO TEU FICHEIRO (carlamariaim.txt)
-const initialData = [
-  {
-    id: "1772211219943", name: "Helena Salomé", password: "Solar34", nota: "10.00",
-    feedback: `<p>Olá, Helena Salomé,</p><br><p>O cenário apresentado é claro, coerente e cumpre a estrutura solicitada.</p><br><p><b>Pontos Fortes</b></p><p><b>Enquadramento Claro:</b> A Helena identificou todos os elementos necessários.</p><p><b>Escolha de Metodologia:</b> A opção pela aprendizagem por descoberta é muito adequada.</p>`
-  },
-  {
-    id: "1772211302116", name: "Hélia Gamito", password: "Azul85", nota: "10.00",
-    feedback: `<p>Olá, Hélia Gamito,</p><br><p>O cenário apresentado é extremamente sensível e demonstra uma excelente capacidade de adaptação tecnológica a contextos de inclusão.</p>`
-  },
-  {
-    id: "1772211433077", name: "José Delgado", password: "Rio51", nota: "10.00",
-    feedback: `<p>Olá, José Delgado,</p><br><p>O cenário "Visual Poetry: Turning Words into Images with AI" apresenta uma proposta clara e coerente.</p>`
-  },
-  {
-    id: "1772213377597", name: "Cristina Anjos", password: "Verde97", nota: "10.00",
-    feedback: `<p>Olá, Maria Cristina Nunes,</p><br><p>O seu cenário "Escola Azul - Vamos Salvar os Oceanos!" é um exemplo de excelência na articulação interdisciplinar.</p>`
-  },
-  {
-    id: "1772213881470", name: "Carlos Homero", password: "Solar62", nota: "10.00",
-    feedback: `<p>Olá, Carlos Homero,</p><br><p>O cenário "Treinador Digital" apresenta uma proposta inovadora e muito bem estruturada para o 12.º ano.</p>`
-  },
-  {
-    id: "1772214617765", name: "Sofia Ribeiro", password: "Rio34", nota: "10.00",
-    feedback: `<p>Olá, Sofia Ribeiro,</p><br><p>O cenário apresentado é claro, coerente e cumpre a estrutura solicitada.</p>`
-  },
-  {
-    id: "1772219098485", name: "Amália Clara", password: "Luna98", nota: "10.00",
-    feedback: `<p>Olá Amália Clara,</p><p><br></p>O seu cenário sobre o "Os Maias" está muito bem estruturado e cumpre os requisitos solicitados.`
-  },
-  {
-    id: "1772223116466", name: "Sílvia Carlos", password: "Azul60", nota: "9.17",
-    feedback: `<p>Olá, Sílvia Carlos,</p><br><p>O seu cenário sobre "The Different Varieties of English" apresenta um conceito de "situação-problema" muito interessante.</p>`
-  },
-  {
-    id: "1772226211393", name: "Helena Serrão", password: "Solar41", nota: "8.32",
-    feedback: `<p>Olá, Helena Serrão,</p><br><p>O seu plano sobre “O Falsificacionismo de Karl Popper” apresenta uma estrutura pedagógica consistente.</p>`
-  }
-];
 
-// Lógica de App
-const getData = () => JSON.parse(localStorage.getItem('formandos_db')) || initialData;
-const saveData = (data) => localStorage.setItem('formandos_db', JSON.stringify(data));
-
-const showScreen = (s) => {
-  document.querySelectorAll('.screen').forEach(el => el.classList.remove('active'));
-  document.getElementById('screen-'+s).classList.add('active');
-  if(s === 'home') render();
+const firebaseConfig = {
+  apiKey: "AIzaSyCwEo1iHIpqr5lYK74-7y8cXieQq5fX7As",
+  authDomain: "feedback-formandos.firebaseapp.com",
+  projectId: "feedback-formandos",
+  storageBucket: "feedback-formandos.firebasestorage.app",
+  messagingSenderId: "885812115335",
+  appId: "1:885812115335:web:3d992b8dd30900bdd24522"
 };
 
-const render = () => {
-  const grid = document.getElementById('student-grid');
-  grid.innerHTML = '';
-  getData().forEach(s => {
-    const div = document.createElement('div');
-    div.className = 'student-card';
-    div.innerHTML = `
-      <h3>${s.name}</h3>
-      <p style="color:var(--muted); font-size:0.8rem; margin:10px 0;">Pass: ${s.password}</p>
-      <div style="display:flex; justify-content:space-between; align-items:center;">
-        <span class="score-badge">Nota: ${s.nota}</span>
-        <div>
-          <button class="btn btn-outline" onclick="view('${s.id}')">👁️</button>
-          <button class="btn btn-outline" onclick="edit('${s.id}')">✏️</button>
-        </div>
-      </div>`;
-    grid.appendChild(div);
+firebase.initializeApp(firebaseConfig);
+const db = firebase.firestore();
+
+let selectedId = null;
+
+// 🔥 Carregar alunos em tempo real
+db.collection("students").onSnapshot(snapshot => {
+  const list = document.getElementById("studentList");
+  list.innerHTML = "";
+
+  snapshot.forEach(doc => {
+    const data = doc.data();
+    const div = document.createElement("div");
+    div.className = "student";
+    div.innerText = data.name || doc.id;
+    div.onclick = () => selectStudent(doc.id, data);
+    list.appendChild(div);
   });
-};
+});
 
-window.view = (id) => {
-  const s = getData().find(x => x.id === id);
-  document.getElementById('modal-name').innerText = s.name;
-  document.getElementById('modal-body').innerHTML = s.feedback;
-  document.getElementById('feedback-modal').style.display = 'flex';
-};
+function selectStudent(id, data){
+  selectedId = id;
+  document.getElementById("selectedName").innerText = data.name;
+  document.getElementById("feedbackBox").value = data.feedback || "";
+}
 
-window.edit = (id) => {
-  const s = getData().find(x => x.id === id);
-  document.getElementById('student-id').value = s.id;
-  document.getElementById('student-name').value = s.name;
-  document.getElementById('student-pass').value = s.password;
-  document.getElementById('student-feedback').value = s.feedback;
-  showScreen('form');
-};
+function addStudent(){
+  const name = document.getElementById("newName").value;
+  const pass = document.getElementById("newPass").value;
 
-document.getElementById('student-form').onsubmit = (e) => {
-  e.preventDefault();
-  const db = getData();
-  const id = document.getElementById('student-id').value;
-  const idx = db.findIndex(x => x.id === id);
-  
-  const updated = {
-    ...db[idx],
-    name: document.getElementById('student-name').value,
-    password: document.getElementById('student-pass').value,
-    feedback: document.getElementById('student-feedback').value
-  };
-  
-  if(idx !== -1) db[idx] = updated; else db.push({...updated, id: Date.now().toString(), nota: "10.00"});
-  saveData(db);
-  showScreen('home');
-};
+  if(!name || !pass){
+    alert("Preenche nome e password");
+    return;
+  }
 
-render();
+  db.collection("students").add({
+    name: name,
+    password: pass,
+    feedback: ""
+  });
+
+  document.getElementById("newName").value = "";
+  document.getElementById("newPass").value = "";
+}
+
+function saveFeedback(){
+  if(!selectedId){
+    alert("Seleciona um formando primeiro");
+    return;
+  }
+
+  const feedback = document.getElementById("feedbackBox").value;
+
+  db.collection("students").doc(selectedId).update({
+    feedback: feedback
+  });
+
+  alert("Feedback guardado!");
+}
+
 </script>
+
 </body>
 </html>
