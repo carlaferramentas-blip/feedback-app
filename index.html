@@ -801,7 +801,7 @@ const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
 // ════ CONSTANTES ════
-const TEACHER_PWD_DEFAULT = 'formacao*2020';
+const TEACHER_PWD_DEFAULT = '1979';
 const WEIGHTS = [0.05, 0.15, 0.20, 0.05, 0.15, 0.20, 0.20];
 const CRIT_NAMES = ['Enquadramento','Objetivos','Produto Final','Tecnologias','Metodologia','Papel do Professor','Reflexão Final'];
 
@@ -889,9 +889,9 @@ window.showScreen = showScreen;
 async function teacherLogin() {
   const pwd = document.getElementById('teacher-pwd').value;
   showLoading('A verificar...');
-  const cfg = await getConfig();
+  
   hideLoading();
-  if (pwd === cfg.teacherPwd) {
+  if (pwd === TEACHER_PWD_DEFAULT) {
     document.getElementById('teacher-pwd').value = '';
     document.getElementById('teacher-err').textContent = '';
     await renderSidebar();
@@ -1220,7 +1220,7 @@ window.calcNota = calcNota;
   showLoading('A ligar ao Firestore...');
   try {
     // Verificar config do formador
-    const cfg = await getConfig();
+    
     if (!cfg.teacherPwd) {
       await saveConfig({ teacherPwd: TEACHER_PWD_DEFAULT });
     }
