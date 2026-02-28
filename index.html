@@ -832,18 +832,7 @@ async function removeStudent(id) {
   await deleteDoc(doc(db, 'students', id));
 }
 
-async function getConfig() {
-  try {
-    const snap = await getDoc(doc(db, 'config', 'main'));
-    return snap.exists() ? snap.data() : { teacherPwd: TEACHER_PWD_DEFAULT };
-  } catch {
-    return { teacherPwd: TEACHER_PWD_DEFAULT };
-  }
-}
-
-async function saveConfig(cfg) {
-  await setDoc(doc(db, 'config', 'main'), cfg);
-}
+// Login do formador é verificado localmente (sem Firestore)
 
 // ════ LOADING ════
 function showLoading(msg = 'A carregar...') {
@@ -886,11 +875,8 @@ function showScreen(id) {
 window.showScreen = showScreen;
 
 // ════ TEACHER LOGIN ════
-async function teacherLogin() {
+function teacherLogin() {
   const pwd = document.getElementById('teacher-pwd').value;
-  showLoading('A verificar...');
-  
-  hideLoading();
   if (pwd === TEACHER_PWD_DEFAULT) {
     document.getElementById('teacher-pwd').value = '';
     document.getElementById('teacher-err').textContent = '';
@@ -1219,30 +1205,5 @@ window.calcNota = calcNota;
 (async () => {
   showLoading('A ligar ao Firestore...');
   try {
-    // Verificar config do formador
-    
-    if (!cfg.teacherPwd) {
-      await saveConfig({ teacherPwd: TEACHER_PWD_DEFAULT });
-    }
 
-    // Migrar dados para Firestore se estiver vazio
-    const existing = await getStudents();
-    if (existing.length === 0) {
-      showLoading('A migrar dados para o Firestore...');
-      for (const s of MIGRATED_STUDENTS) {
-        await saveStudent(s);
-      }
-      console.log('✅ Dados migrados para Firestore:', MIGRATED_STUDENTS.length, 'formandos');
-    }
-  } catch (e) {
-    console.error('Erro ao inicializar Firestore:', e);
-    alert('Erro ao ligar ao Firestore. Verifica as regras da base de dados no Firebase Console.');
-  }
-  hideLoading();
-  showScreen('home');
-})();
-
-</script>
-</body>
-</html>
 
