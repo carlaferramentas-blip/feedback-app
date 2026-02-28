@@ -801,7 +801,7 @@ const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
 // ════ CONSTANTES ════
-const TEACHER_PWD_DEFAULT = 'A_TUA_PASSWORD_AQUI'
+const TEACHER_PWD_DEFAULT = 'formacao*2020';
 const WEIGHTS = [0.05, 0.15, 0.20, 0.05, 0.15, 0.20, 0.20];
 const CRIT_NAMES = ['Enquadramento','Objetivos','Produto Final','Tecnologias','Metodologia','Papel do Professor','Reflexão Final'];
 
@@ -915,7 +915,7 @@ async function renderSidebar() {
     return;
   }
 
-  students.sort((a, b) => a.name.localeCompare(b.name));
+  students.sort((a, b) => (a.name || '').localeCompare(b.name || ''));
 
   students.forEach(s => {
     const hasFeedback = !!(s.feedback || s.nota);
